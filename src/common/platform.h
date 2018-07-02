@@ -86,7 +86,7 @@
 #if defined(_MSC_VER) && !defined(_M_ARM)
 #include <intrin.h>
 #define ANGLE_USE_SSE
-#elif defined(__GNUC__) && (defined(__x86_64__) || defined(__i386__))
+#elif defined(__GNUC__) && (defined(__x86_64__) || defined(__i386__)) && !defined(__MINGW32__)
 #include <x86intrin.h>
 #define ANGLE_USE_SSE
 #endif
