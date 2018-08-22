@@ -59,6 +59,7 @@ class SwapChainD3D : angle::NonCopyable
                             EGLint width,
                             EGLint height)       = 0;
     virtual void recreate()                      = 0;
+    virtual void *getDevice() { return nullptr; }
 
     virtual RenderTargetD3D *getColorRenderTarget()        = 0;
     virtual RenderTargetD3D *getDepthStencilRenderTarget() = 0;
