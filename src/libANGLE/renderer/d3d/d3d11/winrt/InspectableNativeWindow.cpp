@@ -290,8 +290,28 @@ HRESULT GetOptionalSinglePropertyValue(
 
 RECT InspectableNativeWindow::clientRect(const Size &size)
 {
-    // We don't have to check if a swapchain scale was specified here; the default value is 1.0f
-    // which will have no effect.
-    return {0, 0, lround(size.Width * mSwapChainScale), lround(size.Height * mSwapChainScale)};
+    return {0, 0, static_cast<long>(ConvertDipsToPixels(size.Width)),
+            static_cast<long>(ConvertDipsToPixels(size.Height))};
+}
+
+float GetLogicalDpi()
+{
+    ComPtr<ABI::Windows::Graphics::Display::IDisplayPropertiesStatics> displayProperties;
+    float dpi = 96.0f;
+
+    if (SUCCEEDED(GetActivationFactory(HStringReference(RuntimeClass_Windows_Graphics_Display_DisplayProperties).Get(), displayProperties.GetAddressOf())))
+    {
+        if (SUCCEEDED(displayProperties->get_LogicalDpi(&dpi)))
+        {
+            return dpi;
+        }
+    }
+    return dpi;
+}
+
+float ConvertDipsToPixels(float dips)
+{
+    static const float dipsPerInch = 96.0f;
+    return lround((dips * GetLogicalDpi() / dipsPerInch));
 }
 }  // namespace rx

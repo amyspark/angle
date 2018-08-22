@@ -31,6 +31,9 @@ using namespace ABI::Windows::Foundation::Collections;
 
 namespace rx
 {
+float ConvertDipsToPixels(float dips);
+float GetLogicalDpi();
+
 class InspectableNativeWindow
 {
   public:
@@ -38,12 +41,14 @@ class InspectableNativeWindow
         : mSupportsSwapChainResize(true),
           mSwapChainSizeSpecified(false),
           mSwapChainScaleSpecified(false),
-          mSwapChainScale(1.0f),
           mClientRectChanged(false),
           mClientRect({0, 0, 0, 0}),
           mNewClientRect({0, 0, 0, 0})
     {
         mSizeChangedEventToken.value = 0;
+        mSwapChainScale              = 96.0f / GetLogicalDpi();
+        if (mSwapChainScale != 1.0f)
+            mSwapChainScaleSpecified = true;
     }
     virtual ~InspectableNativeWindow() {}
 

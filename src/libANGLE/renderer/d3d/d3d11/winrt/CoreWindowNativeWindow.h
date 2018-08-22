@@ -21,7 +21,6 @@ typedef ABI::Windows::Foundation::
 
 namespace rx
 {
-float ConvertDipsToPixels(float dips);
 
 class CoreWindowNativeWindow : public InspectableNativeWindow,
                                public std::enable_shared_from_this<CoreWindowNativeWindow>
