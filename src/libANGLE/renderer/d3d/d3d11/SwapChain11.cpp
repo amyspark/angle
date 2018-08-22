@@ -1049,6 +1049,11 @@ void SwapChain11::recreate()
     // possibly should use this method instead of reset
 }
 
+void *rx::SwapChain11::getDevice()
+{
+    return mRenderer->getDevice();
+}
+
 RenderTargetD3D *SwapChain11::getColorRenderTarget()
 {
     return &mColorRenderTarget;
