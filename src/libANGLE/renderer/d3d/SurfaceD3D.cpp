@@ -429,6 +429,10 @@ egl::Error SurfaceD3D::querySurfacePointerANGLE(EGLint attribute, void **value)
     {
         *value = mSwapChain->getKeyedMutex();
     }
+    else if (attribute == EGL_DEVICE_EXT)
+    {
+        *value = mSwapChain->getDevice();
+    }
     else
         UNREACHABLE();
 
