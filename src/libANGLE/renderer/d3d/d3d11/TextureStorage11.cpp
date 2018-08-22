@@ -664,9 +664,14 @@ gl::Error TextureStorage11::setData(const gl::Context *context,
     // with compressed formats in the calling logic.
     ASSERT(!internalFormatInfo.compressed);
 
-    const int width    = destBox ? destBox->width : static_cast<int>(image->getWidth());
-    const int height   = destBox ? destBox->height : static_cast<int>(image->getHeight());
-    const int depth    = destBox ? destBox->depth : static_cast<int>(image->getDepth());
+    const int imageWidth = static_cast<int>(image->getWidth());
+    const int width    = destBox ? destBox->width : imageWidth;
+    const int imageHeight = static_cast<int>(image->getHeight());
+    const int height   = destBox ? destBox->height : imageHeight;
+    const int imageDepth = static_cast<int>(image->getDepth());
+    const int depth    = destBox ? destBox->depth : imageDepth;
+    if (imageWidth < width || imageHeight < height || imageDepth < depth)
+        fullUpdate = true;
     GLuint srcRowPitch = 0;
     ANGLE_TRY_RESULT(
         internalFormatInfo.computeRowPitch(type, width, unpack.alignment, unpack.rowLength),
