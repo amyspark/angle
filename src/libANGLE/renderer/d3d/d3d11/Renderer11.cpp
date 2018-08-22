@@ -2471,6 +2471,8 @@ bool Renderer11::getShareHandleSupport() const
         return false;
     }
 
+    // Qt: we don't care about the 9_3 limitation
+#if 0
     // Also disable share handles on Feature Level 9_3, since it doesn't support share handles on
     // RGBA8 textures/swapchains.
     if (mRenderer11DeviceCaps.featureLevel <= D3D_FEATURE_LEVEL_9_3)
@@ -2478,6 +2480,7 @@ bool Renderer11::getShareHandleSupport() const
         mSupportsShareHandles = false;
         return false;
     }
+#endif
 
     // Find out which type of D3D11 device the Renderer11 is using
     d3d11::ANGLED3D11DeviceType deviceType = getDeviceType();
