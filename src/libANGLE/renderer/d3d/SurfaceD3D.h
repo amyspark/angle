@@ -82,6 +82,9 @@ class SurfaceD3D : public SurfaceImpl
                                int backbufferWidth,
                                int backbufferHeight);
 
+    void subclassWindow();
+    void unsubclassWindow();
+
     RendererD3D *mRenderer;
     egl::Display *mDisplay;
 
@@ -93,6 +96,7 @@ class SurfaceD3D : public SurfaceImpl
 
     SwapChainD3D *mSwapChain;
     bool mSwapIntervalDirty;
+    bool mWindowSubclassed; // Indicates whether we successfully subclassed mWindow for WM_RESIZE hooking
 
     NativeWindowD3D *mNativeWindow;  // Handler for the Window that the surface is created for.
     EGLint mWidth;
