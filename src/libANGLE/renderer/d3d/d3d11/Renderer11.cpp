@@ -1205,6 +1205,8 @@ gl::SupportedSampleSet Renderer11::generateSampleSetForEGLConfig(
 {
     gl::SupportedSampleSet sampleCounts;
 
+#if 0  // Qt: Disabling support for multisampling as it is causing a crash in the D3D11 shaders.
+
     // Generate a new set from the set intersection of sample counts between the color and depth
     // format caps.
     std::set_intersection(colorBufferFormatCaps.sampleCounts.begin(),
@@ -1224,6 +1226,8 @@ gl::SupportedSampleSet Renderer11::generateSampleSetForEGLConfig(
         // Likewise, add back the depth sample counts to the supported sample set.
         sampleCounts = depthStencilBufferFormatCaps.sampleCounts;
     }
+
+#endif
 
     // Always support 0 samples
     sampleCounts.insert(0);
