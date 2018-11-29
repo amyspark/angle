@@ -296,14 +296,20 @@ RECT InspectableNativeWindow::clientRect(const Size &size)
 
 float GetLogicalDpi()
 {
-    ComPtr<ABI::Windows::Graphics::Display::IDisplayPropertiesStatics> displayProperties;
+    ComPtr<ABI::Windows::Graphics::Display::IDisplayInformationStatics> displayInformationStatics;
+    ComPtr<ABI::Windows::Graphics::Display::IDisplayInformation> displayInformation;
     float dpi = 96.0f;
 
-    if (SUCCEEDED(GetActivationFactory(HStringReference(RuntimeClass_Windows_Graphics_Display_DisplayProperties).Get(), displayProperties.GetAddressOf())))
+    if (SUCCEEDED(GetActivationFactory(
+            HStringReference(RuntimeClass_Windows_Graphics_Display_DisplayInformation).Get(),
+            displayInformationStatics.GetAddressOf())))
     {
-        if (SUCCEEDED(displayProperties->get_LogicalDpi(&dpi)))
+        if (SUCCEEDED(displayInformationStatics->GetForCurrentView(&displayInformation)))
         {
-            return dpi;
+            if (SUCCEEDED(displayInformation->get_LogicalDpi(&dpi)))
+            {
+                return dpi;
+            }
         }
     }
     return dpi;
