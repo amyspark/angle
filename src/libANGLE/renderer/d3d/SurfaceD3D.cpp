@@ -24,6 +24,19 @@
 namespace rx
 {
 
+GLenum renderTargetFormatFromColorSpace(egl::Display *display, GLenum baseFormat, EGLint colorSpace)
+{
+    if (display->getExtensions().glColorspace)
+    {
+        if (colorSpace == EGL_GL_COLORSPACE_SRGB_KHR)
+        {
+            return gl::GetNonLinearFormat(baseFormat);
+        }
+    }
+
+    return baseFormat;
+}
+
 SurfaceD3D::SurfaceD3D(const egl::SurfaceState &state,
                        RendererD3D *renderer,
                        egl::Display *display,
@@ -38,7 +51,9 @@ SurfaceD3D::SurfaceD3D(const egl::SurfaceState &state,
       mFixedWidth(0),
       mFixedHeight(0),
       mOrientation(static_cast<EGLint>(attribs.get(EGL_SURFACE_ORIENTATION_ANGLE, 0))),
-      mRenderTargetFormat(state.config->renderTargetFormat),
+      mColorSpace(static_cast<EGLint>(attribs.get(EGL_GL_COLORSPACE, EGL_GL_COLORSPACE_SRGB_KHR))),
+      mRenderTargetFormat(
+          renderTargetFormatFromColorSpace(display, state.config->renderTargetFormat, mColorSpace)),
       mDepthStencilFormat(state.config->depthStencilFormat),
       mColorFormat(nullptr),
       mSwapChain(nullptr),
@@ -195,9 +210,9 @@ egl::Error SurfaceD3D::resetSwapChain(const egl::Display *display)
         height = mFixedHeight;
     }
 
-    mSwapChain =
-        mRenderer->createSwapChain(mNativeWindow, mShareHandle, mD3DTexture, mRenderTargetFormat,
-                                   mDepthStencilFormat, mOrientation, mState.config->samples);
+    mSwapChain = mRenderer->createSwapChain(mNativeWindow, mShareHandle, mD3DTexture,
+                                            mRenderTargetFormat, mDepthStencilFormat, mOrientation,
+                                            mState.config->samples, mColorSpace);
     if (!mSwapChain)
     {
         return egl::EglBadAlloc();

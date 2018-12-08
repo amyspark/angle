@@ -622,6 +622,9 @@ struct DisplayExtensions
     // EGL_EXT_gl_colorspace_display_p3_passthrough
     bool glColorspaceDisplayP3Passthrough = false;
 
+    // EGL_EXT_gl_colorspace_bt2020_pq
+    bool glColorspaceBt2020PQ = false;
+
     // EGL_ANGLE_colorspace_attribute_passthrough
     bool eglColorspaceAttributePassthroughANGLE = false;
 

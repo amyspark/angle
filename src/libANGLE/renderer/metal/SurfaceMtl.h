@@ -113,6 +113,7 @@ class SurfaceMtl : public SurfaceImpl
     bool mRobustResourceInit = false;
     bool mContentInitialized = false;
 
+    CGColorSpaceRef mColorSpace;
     mtl::Format mColorFormat;
     mtl::Format mDepthFormat;
     mtl::Format mStencilFormat;

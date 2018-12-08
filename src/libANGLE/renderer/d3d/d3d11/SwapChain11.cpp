@@ -58,12 +58,14 @@ SwapChain11::SwapChain11(Renderer11 *renderer,
                          GLenum backBufferFormat,
                          GLenum depthBufferFormat,
                          EGLint orientation,
-                         EGLint samples)
+                         EGLint samples,
+                         EGLint colorSpace)
     : SwapChainD3D(shareHandle, d3dTexture, backBufferFormat, depthBufferFormat),
       mRenderer(renderer),
       mWidth(-1),
       mHeight(-1),
       mOrientation(orientation),
+      mColorSpace(colorSpace),
       mAppCreatedShareHandle(mShareHandle != nullptr),
       mSwapInterval(0),
       mPassThroughResourcesInit(false),
@@ -286,7 +288,7 @@ EGLint SwapChain11::resetOffscreenColorBuffer(DisplayD3D *displayD3D,
         {
             IDXGIResource *offscreenTextureResource = nullptr;
             HRESULT hr                              = mOffscreenTexture.get()->QueryInterface(
-                                             __uuidof(IDXGIResource), (void **)&offscreenTextureResource);
+                __uuidof(IDXGIResource), (void **)&offscreenTextureResource);
 
             // Fall back to no share handle on failure
             if (FAILED(hr))
@@ -655,10 +657,71 @@ EGLint SwapChain11::reset(DisplayD3D *displayD3D,
             mSwapChain1 = d3d11::DynamicCastComObject<IDXGISwapChain1>(mSwapChain);
         }
 
+        if (mRenderer->getRenderer11DeviceCaps().supportsDXGI1_4)
+        {
+            IDXGISwapChain3 *swapChain3 = d3d11::DynamicCastComObject<IDXGISwapChain3>(mSwapChain);
+
+            // INFO() << "EGL color space: " << gl::FmtHex(mColorSpace);
+            // INFO() << "EGL format: " << gl::FmtHex(mOffscreenRenderTargetFormat);
+            // INFO() << "Native format: " << gl::FmtHex(getSwapChainNativeFormat());
+
+            if (mColorSpace != EGL_GL_COLORSPACE_SRGB_KHR)
+            {
+                DXGI_COLOR_SPACE_TYPE nativeColorSpace = DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
+                switch (mColorSpace)
+                {
+                    case EGL_GL_COLORSPACE_SRGB_KHR:
+                        nativeColorSpace = DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
+                        break;
+                    case EGL_GL_COLORSPACE_SCRGB_LINEAR_EXT:
+                        nativeColorSpace = DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709;
+                        break;
+                    case EGL_GL_COLORSPACE_BT2020_PQ_EXT:
+                        nativeColorSpace = DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
+                        break;
+                    default:
+                        ERR() << "Unsupported color space " << mColorSpace << " requested";
+                        return EGL_BAD_ATTRIBUTE;
+                }
+
+                // INFO() << "Native color space: " << gl::FmtHex(nativeColorSpace);
+
+                UINT supported = 0;
+                hr             = swapChain3->CheckColorSpaceSupport(nativeColorSpace, &supported);
+                if (FAILED(hr))
+                {
+                    ERR() << "Swap chain doesn't support the selected color space, "
+                          << gl::FmtHR(hr);
+                    SafeRelease(swapChain3);
+                    release();
+                    return EGL_BAD_ATTRIBUTE;
+                }
+
+                if (!(supported & DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG_PRESENT))
+                {
+                    SafeRelease(swapChain3);
+                    release();
+                    return EGL_BAD_MATCH;
+                }
+
+                hr = swapChain3->SetColorSpace1(nativeColorSpace);
+                if (FAILED(hr))
+                {
+                    ERR() << "Swap chain failed to set the selected color space, " << gl::FmtHR(hr);
+                    SafeRelease(swapChain3);
+                    release();
+                    return EGL_BAD_ATTRIBUTE;
+                }
+            }
+
+            SafeRelease(swapChain3);
+        }
+
         ID3D11Texture2D *backbufferTex = nullptr;
         hr                             = mSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D),
                                                                reinterpret_cast<LPVOID *>(&backbufferTex));
         ASSERT(SUCCEEDED(hr));
+
         const auto &format =
             d3d11::Format::Get(mOffscreenRenderTargetFormat, mRenderer->getRenderer11DeviceCaps());
         mBackBufferTexture.set(backbufferTex, format);

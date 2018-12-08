@@ -27,7 +27,8 @@ class SwapChain9 : public SwapChainD3D
                IUnknown *d3dTexture,
                GLenum backBufferFormat,
                GLenum depthBufferFormat,
-               EGLint orientation);
+               EGLint orientation,
+               EGLint colorSpace);
     ~SwapChain9() override;
 
     EGLint resize(DisplayD3D *displayD3D, EGLint backbufferWidth, EGLint backbufferHeight) override;
@@ -63,6 +64,7 @@ class SwapChain9 : public SwapChainD3D
     EGLint mWidth;
     EGLint mHeight;
     EGLint mSwapInterval;
+    EGLint mColorSpace;
 
     NativeWindow9 *mNativeWindow;
 

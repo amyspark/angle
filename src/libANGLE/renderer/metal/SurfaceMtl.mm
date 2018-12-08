@@ -73,6 +73,33 @@ angle::Result CreateOrResizeTexture(const gl::Context *context,
     return angle::Result::Continue;
 }
 
+CFStringRef MapEglColorSpaceToCGColorSpace(EGLenum EGLColorspace)
+{
+    switch (EGLColorspace)
+    {
+        case EGL_NONE:
+            return kCGColorSpaceSRGB;
+        case EGL_GL_COLORSPACE_LINEAR:
+        case EGL_GL_COLORSPACE_SRGB_KHR:
+        case EGL_GL_COLORSPACE_DISPLAY_P3_PASSTHROUGH_EXT:
+            return kCGColorSpaceSRGB;
+        case EGL_GL_COLORSPACE_DISPLAY_P3_LINEAR_EXT:
+            return kCGColorSpaceExtendedLinearDisplayP3;
+        case EGL_GL_COLORSPACE_DISPLAY_P3_EXT:
+            return kCGColorSpaceDisplayP3;
+        case EGL_GL_COLORSPACE_SCRGB_LINEAR_EXT:
+            return kCGColorSpaceExtendedLinearSRGB;
+        case EGL_GL_COLORSPACE_SCRGB_EXT:
+            return kCGColorSpaceExtendedSRGB;
+        case EGL_GL_COLORSPACE_BT2020_LINEAR_EXT:
+            return kCGColorSpaceExtendedLinearITUR_2020;
+        case EGL_GL_COLORSPACE_BT2020_PQ_EXT:
+            return kCGColorSpaceITUR_2020_PQ_EOTF;
+        default:
+            UNREACHABLE();
+            return kCGColorSpaceSRGB;
+    }
+}
 }  // anonymous namespace
 
 // SurfaceMtl implementation
@@ -118,6 +145,10 @@ SurfaceMtl::SurfaceMtl(DisplayMtl *display,
     {
         mStencilFormat = display->getPixelFormat(kDefaultFrameBufferStencilFormatId);
     }
+
+    const auto colorSpace{MapEglColorSpaceToCGColorSpace(
+        static_cast<EGLenum>(attribs.get(EGL_GL_COLORSPACE, EGL_NONE)))};
+    mColorSpace = CGColorSpaceCreateWithName(colorSpace);
 }
 
 SurfaceMtl::~SurfaceMtl() {}
@@ -134,6 +165,8 @@ void SurfaceMtl::destroy(const egl::Display *display)
     mColorManualResolveRenderTarget.reset();
     mDepthRenderTarget.reset();
     mStencilRenderTarget.reset();
+
+    CGColorSpaceRelease(mColorSpace);
 }
 
 egl::Error SurfaceMtl::initialize(const egl::Display *display)
@@ -470,6 +503,7 @@ egl::Error WindowSurfaceMtl::initialize(const egl::Display *display)
         mMetalLayer.get().device          = metalDevice;
         mMetalLayer.get().pixelFormat     = mColorFormat.metalFormat;
         mMetalLayer.get().framebufferOnly = NO;  // Support blitting and glReadPixels
+        mMetalLayer.get().colorspace      = mColorSpace;
 
 #if ANGLE_PLATFORM_MACOS || ANGLE_PLATFORM_MACCATALYST
         // Autoresize with parent layer.

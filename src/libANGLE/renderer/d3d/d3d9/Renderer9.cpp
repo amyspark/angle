@@ -721,10 +721,11 @@ SwapChainD3D *Renderer9::createSwapChain(NativeWindowD3D *nativeWindow,
                                          GLenum backBufferFormat,
                                          GLenum depthBufferFormat,
                                          EGLint orientation,
-                                         EGLint samples)
+                                         EGLint samples,
+                                         EGLint colorSpace)
 {
     return new SwapChain9(this, GetAs<NativeWindow9>(nativeWindow), shareHandle, d3dTexture,
-                          backBufferFormat, depthBufferFormat, orientation);
+                          backBufferFormat, depthBufferFormat, orientation, colorSpace);
 }
 
 egl::Error Renderer9::getD3DTextureInfo(const egl::Config *configuration,

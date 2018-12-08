@@ -23,12 +23,14 @@ SwapChain9::SwapChain9(Renderer9 *renderer,
                        IUnknown *d3dTexture,
                        GLenum backBufferFormat,
                        GLenum depthBufferFormat,
-                       EGLint orientation)
+                       EGLint orientation,
+                       EGLint colorSpace)
     : SwapChainD3D(shareHandle, d3dTexture, backBufferFormat, depthBufferFormat),
       mRenderer(renderer),
       mWidth(-1),
       mHeight(-1),
       mSwapInterval(-1),
+      mColorSpace(colorSpace),
       mNativeWindow(nativeWindow),
       mSwapChain(nullptr),
       mBackBuffer(nullptr),
@@ -101,6 +103,12 @@ EGLint SwapChain9::reset(DisplayD3D *displayD3D,
     if (device == nullptr)
     {
         return EGL_BAD_ACCESS;
+    }
+
+    if (mColorSpace != EGL_GL_COLORSPACE_SRGB_KHR)
+    {
+        ERR() << "DirectX 9 does not support HDR";
+        return EGL_BAD_ATTRIBUTE;
     }
 
     // Evict all non-render target textures to system memory and release all resources

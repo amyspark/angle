@@ -147,6 +147,9 @@ HRESULT NativeWindow11Win32::createSwapChain(ID3D11Device *device,
 
     // Use IDXGIFactory2::CreateSwapChainForHwnd if DXGI 1.2 is available to create a
     // DXGI_SWAP_EFFECT_SEQUENTIAL swap chain.
+    //
+    // NOTE: in non-flip mode HDR rendering is not supported, so use it
+    //       by default
     IDXGIFactory2 *factory2 = d3d11::DynamicCastComObject<IDXGIFactory2>(factory);
     if (factory2 != nullptr)
     {
@@ -159,9 +162,9 @@ HRESULT NativeWindow11Win32::createSwapChain(ID3D11Device *device,
         swapChainDesc.SampleDesc.Quality    = 0;
         swapChainDesc.BufferUsage =
             DXGI_USAGE_RENDER_TARGET_OUTPUT | DXGI_USAGE_SHADER_INPUT | DXGI_USAGE_BACK_BUFFER;
-        swapChainDesc.BufferCount   = 1;
+        swapChainDesc.BufferCount   = 2;
         swapChainDesc.Scaling       = DXGI_SCALING_STRETCH;
-        swapChainDesc.SwapEffect    = DXGI_SWAP_EFFECT_SEQUENTIAL;
+        swapChainDesc.SwapEffect    = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
         swapChainDesc.AlphaMode     = DXGI_ALPHA_MODE_UNSPECIFIED;
         swapChainDesc.Flags         = 0;
         IDXGISwapChain1 *swapChain1 = nullptr;
@@ -177,7 +180,7 @@ HRESULT NativeWindow11Win32::createSwapChain(ID3D11Device *device,
     }
 
     DXGI_SWAP_CHAIN_DESC swapChainDesc               = {};
-    swapChainDesc.BufferCount                        = 1;
+    swapChainDesc.BufferCount                        = 2;
     swapChainDesc.BufferDesc.Format                  = format;
     swapChainDesc.BufferDesc.Width                   = width;
     swapChainDesc.BufferDesc.Height                  = height;
@@ -192,6 +195,7 @@ HRESULT NativeWindow11Win32::createSwapChain(ID3D11Device *device,
     swapChainDesc.SampleDesc.Count   = samples;
     swapChainDesc.SampleDesc.Quality = 0;
     swapChainDesc.Windowed           = TRUE;
+
     swapChainDesc.SwapEffect         = DXGI_SWAP_EFFECT_DISCARD;
 
     HRESULT result = factory->CreateSwapChain(device, &swapChainDesc, swapChain);
