@@ -16,6 +16,10 @@
 #include "libANGLE/renderer/d3d/ContextD3D.h"
 #include "libANGLE/trace.h"
 
+#ifndef QT_D3DCOMPILER_DLL
+#define QT_D3DCOMPILER_DLL D3DCOMPILER_DLL
+#endif
+
 namespace
 {
 #if ANGLE_APPEND_ASSEMBLY_TO_SHADER_DEBUG_INFO == ANGLE_ENABLED
@@ -135,6 +139,27 @@ angle::Result HLSLCompiler::ensureInitialized(d3d::Context *context)
         }
     }
 #    endif  // ANGLE_PRELOADED_D3DCOMPILER_MODULE_NAMES
+
+    // Load the compiler DLL specified by the environment, or default to QT_D3DCOMPILER_DLL
+    const wchar_t *defaultCompiler = _wgetenv(L"QT_D3DCOMPILER_DLL");
+    if (!defaultCompiler)
+        defaultCompiler = QT_D3DCOMPILER_DLL;
+
+    const wchar_t *compilerDlls[] = {
+        defaultCompiler,
+        L"d3dcompiler_47.dll",
+        L"d3dcompiler_46.dll",
+        L"d3dcompiler_43.dll",
+        0
+    };
+
+    // Load the first available known compiler DLL
+    for (int i = 0; compilerDlls[i]; ++i)
+    {
+        mD3DCompilerModule = LoadLibrary(compilerDlls[i]);
+        if (mD3DCompilerModule)
+            break;
+    }
 
     if (!mD3DCompilerModule)
     {
