@@ -13,6 +13,7 @@
 #include "common/system_utils.h"
 #include "libANGLE/ErrorStrings.h"
 #include "libANGLE/Thread.h"
+#include "libANGLE/Display.h"
 #include "libGLESv2/resource.h"
 
 #include <atomic>
@@ -353,6 +354,7 @@ extern "C" BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID)
             break;
 
         case DLL_PROCESS_DETACH:
+            egl::Display::CleanupDisplays();
             egl::TerminateProcess();
             break;
     }

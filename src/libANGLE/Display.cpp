@@ -817,6 +817,23 @@ Display::EglDisplaySet Display::GetEglDisplaySet()
     return displays;
 }
 
+//static
+void Display::CleanupDisplays()
+{
+    // ~Display takes care of removing the entry from the according map
+    {
+        ANGLEPlatformDisplayMap *displays = GetANGLEPlatformDisplayMap();
+        while (!displays->empty())
+            delete displays->begin()->second;
+    }
+
+    {
+        DevicePlatformDisplayMap *displays = GetDevicePlatformDisplayMap();
+        while (!displays->empty())
+            delete displays->begin()->second;
+    }
+}
+
 Display::Display(EGLenum platform, EGLNativeDisplayType displayId, Device *eglDevice)
     : mState(displayId),
       mImplementation(nullptr),

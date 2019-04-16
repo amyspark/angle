@@ -156,6 +156,7 @@ class Display final : public LabeledObject,
 
     using EglDisplaySet = std::set<Display *>;
     static EglDisplaySet GetEglDisplaySet();
+    static void CleanupDisplays();
 
     static const ClientExtensions &GetClientExtensions();
     static const std::string &GetClientExtensionString();
