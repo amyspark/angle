@@ -17,7 +17,7 @@
 #include "libANGLE/trace.h"
 
 #ifndef QT_D3DCOMPILER_DLL
-#define QT_D3DCOMPILER_DLL D3DCOMPILER_DLL
+#define QT_D3DCOMPILER_DLL D3DCOMPILER_DLL_W
 #endif
 
 namespace
@@ -156,7 +156,7 @@ angle::Result HLSLCompiler::ensureInitialized(d3d::Context *context)
     // Load the first available known compiler DLL
     for (int i = 0; compilerDlls[i]; ++i)
     {
-        mD3DCompilerModule = LoadLibrary(compilerDlls[i]);
+        mD3DCompilerModule = LoadLibraryW(compilerDlls[i]);
         if (mD3DCompilerModule)
             break;
     }
