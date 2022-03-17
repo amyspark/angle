@@ -127,7 +127,7 @@ HRESULT NativeWindow11Win32::createSwapChain(ID3D11Device *device,
         swapChainDesc.BufferUsage =
             DXGI_USAGE_RENDER_TARGET_OUTPUT | DXGI_USAGE_BACK_BUFFER | DXGI_USAGE_SHADER_INPUT;
         swapChainDesc.BufferCount = 2;
-        swapChainDesc.Scaling     = DXGI_SCALING_STRETCH;
+        swapChainDesc.Scaling     = DXGI_SCALING_NONE;
         swapChainDesc.SwapEffect  = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
         swapChainDesc.AlphaMode =
             mHasAlpha ? DXGI_ALPHA_MODE_PREMULTIPLIED : DXGI_ALPHA_MODE_IGNORE;
@@ -163,7 +163,7 @@ HRESULT NativeWindow11Win32::createSwapChain(ID3D11Device *device,
         swapChainDesc.BufferUsage =
             DXGI_USAGE_RENDER_TARGET_OUTPUT | DXGI_USAGE_SHADER_INPUT | DXGI_USAGE_BACK_BUFFER;
         swapChainDesc.BufferCount   = 2;
-        swapChainDesc.Scaling       = DXGI_SCALING_STRETCH;
+        swapChainDesc.Scaling       = DXGI_SCALING_NONE;
         swapChainDesc.SwapEffect    = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
         swapChainDesc.AlphaMode     = DXGI_ALPHA_MODE_UNSPECIFIED;
         swapChainDesc.Flags         = 0;
