@@ -65,7 +65,6 @@ SurfaceD3D::SurfaceD3D(const egl::SurfaceState &state,
       mColorFormat(nullptr),
       mSwapChain(nullptr),
       mSwapIntervalDirty(true),
-      mWindowSubclassed(false),
       mNativeWindow(renderer->createNativeWindow(window, state.config, attribs)),
       mWidth(static_cast<EGLint>(attribs.get(EGL_WIDTH, 0))),
       mHeight(static_cast<EGLint>(attribs.get(EGL_HEIGHT, 0))),
@@ -74,7 +73,6 @@ SurfaceD3D::SurfaceD3D(const egl::SurfaceState &state,
       mD3DTexture(nullptr),
       mBuftype(buftype)
 {
-    subclassWindow();
     if (window != nullptr && !mFixedSize)
     {
         mWidth  = -1;
@@ -106,7 +104,6 @@ SurfaceD3D::SurfaceD3D(const egl::SurfaceState &state,
 
 SurfaceD3D::~SurfaceD3D()
 {
-    unsubclassWindow();
     releaseSwapChain();
     SafeDelete(mNativeWindow);
     SafeRelease(mD3DTexture);
@@ -338,94 +335,6 @@ egl::Error SurfaceD3D::swapRect(DisplayD3D *displayD3D,
     ANGLE_TRY(checkForOutOfDateSwapChain(displayD3D));
 
     return egl::NoError();
-}
-
-#if !defined(ANGLE_ENABLE_WINDOWS_UWP)
-#define kSurfaceProperty _TEXT("Egl::SurfaceOwner")
-#define kParentWndProc _TEXT("Egl::SurfaceParentWndProc")
-#define kDisplayProperty _TEXT("Egl::DisplayD3D")
-
-static LRESULT CALLBACK SurfaceWindowProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
-{
-    if (message == WM_SIZE)
-    {
-        SurfaceD3D* surf = reinterpret_cast<SurfaceD3D*>(GetProp(hwnd, kSurfaceProperty));
-        DisplayD3D *display = reinterpret_cast<DisplayD3D *>(GetProp(hwnd, kDisplayProperty));
-        if (surf && display)
-        {
-            surf->checkForOutOfDateSwapChain(display);
-        }
-    }
-    WNDPROC prevWndFunc = reinterpret_cast<WNDPROC >(GetProp(hwnd, kParentWndProc));
-    return CallWindowProc(prevWndFunc, hwnd, message, wparam, lparam);
-}
-#endif
-
-void SurfaceD3D::subclassWindow()
-{
-#if !defined(ANGLE_ENABLE_WINDOWS_UWP)
-    HWND window = mNativeWindow->getNativeWindow();
-    if (!window)
-    {
-        return;
-    }
-
-    DWORD processId;
-    DWORD threadId = GetWindowThreadProcessId(window, &processId);
-    if (processId != GetCurrentProcessId() || threadId != GetCurrentThreadId())
-    {
-        return;
-    }
-
-    SetLastError(0);
-    LONG_PTR oldWndProc = SetWindowLongPtr(window, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(SurfaceWindowProc));
-    if (oldWndProc == 0 && GetLastError() != ERROR_SUCCESS)
-    {
-        mWindowSubclassed = false;
-        return;
-    }
-
-    SetProp(window, kSurfaceProperty, reinterpret_cast<HANDLE>(this));
-    SetProp(window, kParentWndProc, reinterpret_cast<HANDLE>(oldWndProc));
-    SetProp(window, kDisplayProperty, reinterpret_cast<HANDLE>(GetImplAs<DisplayD3D>(mDisplay)));
-    mWindowSubclassed = true;
-#endif
-}
-
-void SurfaceD3D::unsubclassWindow()
-{
-    if (!mWindowSubclassed)
-    {
-        return;
-    }
-
-#if !defined(ANGLE_ENABLE_WINDOWS_STORE)
-    HWND window = mNativeWindow->getNativeWindow();
-    if (!window)
-    {
-        return;
-    }
-
-    // un-subclass
-    LONG_PTR parentWndFunc = reinterpret_cast<LONG_PTR>(GetProp(window, kParentWndProc));
-
-    // Check the windowproc is still SurfaceWindowProc.
-    // If this assert fails, then it is likely the application has subclassed the
-    // hwnd as well and did not unsubclass before destroying its EGL context. The
-    // application should be modified to either subclass before initializing the
-    // EGL context, or to unsubclass before destroying the EGL context.
-    if (parentWndFunc)
-    {
-        LONG_PTR prevWndFunc = SetWindowLongPtr(window, GWLP_WNDPROC, parentWndFunc);
-        ANGLE_UNUSED_VARIABLE(prevWndFunc);
-        ASSERT(prevWndFunc == reinterpret_cast<LONG_PTR>(SurfaceWindowProc));
-    }
-
-    RemoveProp(window, kSurfaceProperty);
-    RemoveProp(window, kParentWndProc);
-    RemoveProp(window, kDisplayProperty);
-#endif
-    mWindowSubclassed = false;
 }
 
 egl::Error SurfaceD3D::checkForOutOfDateSwapChain(DisplayD3D *displayD3D)
