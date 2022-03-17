@@ -542,10 +542,6 @@ EGLint SwapChain11::resize(DisplayD3D *displayD3D, EGLint backbufferWidth, EGLin
     ASSERT(SUCCEEDED(hr));
     if (SUCCEEDED(hr))
     {
-#ifndef ANGLE_ENABLE_WINDOWS_UWP
-        if (mNativeWindow->getNativeWindow())
-            InvalidateRect(mNativeWindow->getNativeWindow(), nullptr, FALSE);
-#endif
         const auto &format =
             d3d11::Format::Get(mOffscreenRenderTargetFormat, mRenderer->getRenderer11DeviceCaps());
         mBackBufferTexture.set(backbufferTexture, format);
