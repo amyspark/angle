@@ -93,12 +93,8 @@ namespace egl
 class Debug;
 class Thread;
 
-#if defined(ANGLE_PLATFORM_APPLE)
 extern Thread *GetCurrentThreadTLS();
 extern void SetCurrentThreadTLS(Thread *thread);
-#else
-extern thread_local Thread *gCurrentThread;
-#endif
 
 angle::GlobalMutex &GetGlobalMutex();
 angle::GlobalMutex &GetGlobalSurfaceMutex();
@@ -141,11 +137,7 @@ ANGLE_INLINE Context *GetGlobalContext()
     }
 #endif
 
-#if defined(ANGLE_PLATFORM_APPLE)
     egl::Thread *currentThread = egl::GetCurrentThreadTLS();
-#else
-    egl::Thread *currentThread = egl::gCurrentThread;
-#endif
     ASSERT(currentThread);
     return currentThread->getContext();
 }
@@ -165,11 +157,7 @@ ANGLE_INLINE Context *GetValidGlobalContext()
     }
 #endif
 
-#if defined(ANGLE_PLATFORM_APPLE)
     return GetCurrentValidContextTLS();
-#else
-    return gCurrentValidContext;
-#endif
 }
 
 // Generate a context lost error on the context if it is non-null and lost.

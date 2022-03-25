@@ -52,21 +52,13 @@ Thread *AllocateCurrentThread()
         // Global thread intentionally leaked
         ANGLE_SCOPED_DISABLE_LSAN();
         thread = new Thread();
-#if defined(ANGLE_PLATFORM_APPLE)
         SetCurrentThreadTLS(thread);
-#else
-        gCurrentThread = thread;
-#endif
     }
 
     // Initialize fast TLS slot
     SetContextToAndroidOpenGLTLSSlot(nullptr);
 
-#if defined(ANGLE_PLATFORM_APPLE)
     gl::SetCurrentValidContextTLS(nullptr);
-#else
-    gl::gCurrentValidContext = nullptr;
-#endif
 
 #if defined(ANGLE_PLATFORM_ANDROID)
     static pthread_once_t keyOnce           = PTHREAD_ONCE_INIT;
@@ -142,7 +134,15 @@ void SetCurrentThreadTLS(Thread *thread)
     SetTLSValue(CurrentThreadIndex, thread);
 }
 #else
-thread_local Thread *gCurrentThread = nullptr;
+static thread_local Thread *gCurrentThread = nullptr;
+Thread *GetCurrentThreadTLS()
+{
+    return gCurrentThread;
+}
+void SetCurrentThreadTLS(Thread *thread)
+{
+    gCurrentThread = thread;
+}
 #endif
 
 angle::GlobalMutex &GetGlobalMutex()
@@ -171,30 +171,18 @@ void SetGlobalLastContext(gl::Context *context)
 // It also causes a flaky false positive in TSAN. http://crbug.com/1223970
 ANGLE_NO_SANITIZE_MEMORY ANGLE_NO_SANITIZE_THREAD Thread *GetCurrentThread()
 {
-#if defined(ANGLE_PLATFORM_APPLE)
     Thread *current = GetCurrentThreadTLS();
-#else
-    Thread *current = gCurrentThread;
-#endif
     return (current ? current : AllocateCurrentThread());
 }
 
 void SetContextCurrent(Thread *thread, gl::Context *context)
 {
-#if defined(ANGLE_PLATFORM_APPLE)
     Thread *currentThread = GetCurrentThreadTLS();
-#else
-    Thread *currentThread = gCurrentThread;
-#endif
     ASSERT(currentThread);
     currentThread->setCurrent(context);
     SetContextToAndroidOpenGLTLSSlot(context);
 
-#if defined(ANGLE_PLATFORM_APPLE)
     gl::SetCurrentValidContextTLS(context);
-#else
-    gl::gCurrentValidContext = context;
-#endif
 
 #if defined(ANGLE_FORCE_CONTEXT_CHECK_EVERY_CALL)
     DirtyContextIfNeeded(context);

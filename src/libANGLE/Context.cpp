@@ -357,7 +357,15 @@ void SetCurrentValidContextTLS(Context *context)
     SetTLSValue(CurrentValidContextIndex, context);
 }
 #else
-thread_local Context *gCurrentValidContext = nullptr;
+static thread_local Context *gCurrentValidContext = nullptr;
+Context *GetCurrentValidContextTLS()
+{
+    return gCurrentValidContext;
+}
+void SetCurrentValidContextTLS(Context *context)
+{
+    gCurrentValidContext = context;
+}
 #endif
 
 Context::Context(egl::Display *display,
@@ -2866,11 +2874,7 @@ void Context::setContextLost()
     mSkipValidation = false;
 
     // Make sure we update TLS.
-#if defined(ANGLE_PLATFORM_APPLE)
     SetCurrentValidContextTLS(nullptr);
-#else
-    gCurrentValidContext = nullptr;
-#endif
 }
 
 GLenum Context::getGraphicsResetStatus()
