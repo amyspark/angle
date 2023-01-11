@@ -612,8 +612,13 @@ list(APPEND LIBGLESV2_SOURCES
     "src/libGLESv2/proc_table_egl.h"
     "src/libGLESv2/proc_table_egl_autogen.cpp"
     "src/libGLESv2/resource.h"
-    "src/libGLESv2/libGLESv2_autogen.def"
 )
+if (WIN32)
+    list(APPEND LIBGLESV2_SOURCES
+        "src/libGLESv2/libGLESv2_autogen.def"
+        "src/libGLESv2/libGLESv2.rc"
+    )
+endif()
 add_library(libGLESv2 ${LIBGLESV2_SOURCES})
 target_link_libraries(libGLESv2 PRIVATE angle::common angle::libANGLE)
 target_compile_definitions(libGLESv2
@@ -647,6 +652,7 @@ target_include_directories(libGLESv2 PUBLIC "$<INSTALL_INTERFACE:include>")
 # libEGL
 if(WIN32)
     set(libEGL_def
+        "src/libEGL/libEGL.rc"
         "src/libEGL/libEGL_autogen.def"
     )
 endif()
